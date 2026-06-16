@@ -179,6 +179,24 @@ func backoff(attempt int) time.Duration {
 	return min(time.Duration(attempt)*500*time.Millisecond, 5*time.Second)
 }
 
+// Stats returns aggregate statistics from the channel Atom feed.
+func (c *Client) Stats(ctx context.Context) (*ChannelInfo, error) {
+	videos, err := c.Videos(ctx, 0)
+	if err != nil {
+		return nil, err
+	}
+	info := &ChannelInfo{
+		TotalVideos: len(videos),
+		FeedURL:     c.cfg.FeedURL,
+		ChannelURL:  "https://www.youtube.com/@TwoMinutePapers",
+	}
+	if len(videos) > 0 {
+		info.LatestVideo = videos[0].PublishedAt
+		info.OldestVideo = videos[len(videos)-1].PublishedAt
+	}
+	return info, nil
+}
+
 // parsePublished parses an RFC3339 timestamp and returns "YYYY-MM-DD".
 // Falls back to the raw string if parsing fails.
 func parsePublished(s string) string {
