@@ -10,3 +10,12 @@ type Video struct {
 	Thumbnail   string `json:"thumbnail"`
 	Description string `json:"description"` // truncated to 200 chars
 }
+
+// ChannelInfo holds aggregate statistics for the channel feed.
+type ChannelInfo struct {
+	TotalVideos int    `json:"total_videos"`
+	OldestVideo string `json:"oldest_video"`
+	LatestVideo string `json:"latest_video"`
+	FeedURL     string `json:"feed_url"`
+	ChannelURL  string `json:"channel_url"`
+}

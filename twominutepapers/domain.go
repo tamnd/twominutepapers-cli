@@ -47,6 +47,12 @@ func (Domain) Register(app *kit.App) {
 
 	kit.Handle(app, kit.OpMeta{Name: "videos", Group: "read", List: true,
 		Summary: "List the latest Two Minute Papers videos"}, listVideos)
+
+	kit.Handle(app, kit.OpMeta{Name: "export", Group: "read", List: true,
+		Summary: "Export all videos as JSONL"}, exportVideos)
+
+	kit.Handle(app, kit.OpMeta{Name: "info", Group: "read", Single: true,
+		Summary: "Show channel statistics"}, getChannelInfo)
 }
 
 // newClient builds the Client from the kit config.
@@ -72,6 +78,14 @@ type listVideosIn struct {
 	Client *Client `kit:"inject"`
 }
 
+type exportVideosIn struct {
+	Client *Client `kit:"inject"`
+}
+
+type channelInfoIn struct {
+	Client *Client `kit:"inject"`
+}
+
 func listVideos(ctx context.Context, in listVideosIn, emit func(*Video) error) error {
 	videos, err := in.Client.Videos(ctx, in.Limit)
 	if err != nil {
@@ -83,6 +97,27 @@ func listVideos(ctx context.Context, in listVideosIn, emit func(*Video) error) e
 		}
 	}
 	return nil
+}
+
+func exportVideos(ctx context.Context, in exportVideosIn, emit func(*Video) error) error {
+	videos, err := in.Client.Videos(ctx, 0)
+	if err != nil {
+		return mapErr(err)
+	}
+	for i := range videos {
+		if err := emit(&videos[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getChannelInfo(ctx context.Context, in channelInfoIn, emit func(*ChannelInfo) error) error {
+	info, err := in.Client.Stats(ctx)
+	if err != nil {
+		return mapErr(err)
+	}
+	return emit(info)
 }
 
 // Classify turns a YouTube watch URL into (type, id).
